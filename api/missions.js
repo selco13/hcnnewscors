@@ -58,3 +58,37 @@ export default async function handler(req, res) {
         ]);
     }
 }
+
+function transformMissionsData(rawData) {
+    let missions = [];
+    
+    if (Array.isArray(rawData)) {
+        missions = rawData;
+    } else if (rawData.bounties && Array.isArray(rawData.bounties)) {
+        missions = rawData.bounties;
+    } else if (rawData.missions && Array.isArray(rawData.missions)) {
+        missions = rawData.missions;
+    } else if (rawData.contracts && Array.isArray(rawData.contracts)) {
+        missions = rawData.contracts;
+    } else if (rawData.data && Array.isArray(rawData.data)) {
+        missions = rawData.data;
+    } else {
+        missions = [rawData];
+    }
+    
+    const transformedMissions = missions.slice(0, 8).map((mission, index) => ({
+        title: mission.title || mission.name || mission.contract_name || mission.target || `Mission ${index + 1}`,
+        description: mission.description || mission.details || mission.summary || mission.objective || mission.notes || "Mission details available upon acceptance",
+        reward: mission.reward || mission.payout || mission.bounty || mission.payment || `${(Math.random() * 75000 + 25000).toFixed(0)} aUEC`,
+        location: mission.location || mission.system || mission.area || mission.planet || mission.sector || "Location classified",
+        difficulty: mission.difficulty || mission.threat_level || mission.risk_level || mission.danger || getDifficultyLevel(),
+        status: mission.status || mission.state || (mission.active ? "Active" : "Available")
+    }));
+    
+    return transformedMissions;
+}
+
+function getDifficultyLevel() {
+    const levels = ["LOW", "MEDIUM", "HIGH", "EXTREME"];
+    return levels[Math.floor(Math.random() * levels.length)];
+}
